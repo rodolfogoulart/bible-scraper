@@ -43,7 +43,11 @@
     "url": "https://github.com/IonicaBizau/bible-scraper/issues"
   },
   "dependencies": {
-    "scrape-it": "^6.0.1"
+    "bible-scraper": "^2.2.1",
+    "express": "^4.21.2",
+    "scrape-it": "^6.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "contributors": [
     "Simone Guarnuccio <simoneguarnuccio@gmail.com>"
