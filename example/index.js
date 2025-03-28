@@ -36,10 +36,10 @@ async function fetchVerse() {
 
 
     const nivWithTitle = new BibleScraper(BibleScraper.TRANSLATIONS.NVT)
-    // console.log(await nivWithTitle.chapterWithTitle("SNG.1"))
+    console.log(await nivWithTitle.chapterFormated("SNG.1"))
     //
     
-    console.log(await nivWithTitle.chapterWithTitle("ECC.2"))
+    console.log(await nivWithTitle.chapterFormated("ECC.2"))
 }
 
 

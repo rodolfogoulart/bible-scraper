@@ -19,7 +19,7 @@ const swaggerOptions = {
             description: 'API for YouVersion.',
         },
     },
-    apis: ['./example/server.js'], // Caminho para o arquivo onde está a configuração dos endpoints
+    apis: ['./example/server.js'], // path of endpoints
 };
 
 const swaggerDocs = swaggerJsdoc(swaggerOptions);
@@ -29,29 +29,35 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  * @swagger
  * /getChapter:
  *   get:
- *     summary: Return the chapter in json format.
+ *     summary: Return the chapter in JSON format.
  *     parameters:
  *       - in: query
  *         name: translation
  *         required: true
  *         schema:
  *           type: string
- *         description: Tradução da Bíblia.
+ *         description: "Bible translation code. Example: https://www.bible.com/bible/1715/MAT.2.BDO1573. [BDO1573] is the code, or you can pass the ID (1715)."
  *       - in: query
  *         name: book
  *         required: true
  *         schema:
  *           type: string
- *         description: Livro da Bíblia.
+ *         description: Bible book code. Call `getBooks` to retrieve the book code.
  *       - in: query
  *         name: chapter
  *         required: true
  *         schema:
  *           type: string
- *         description: Capítulo da Bíblia.
+ *         description: Bible chapter.
+ *       - in: query
+ *         name: addNote
+ *         required: false
+ *         schema:
+ *           type: bool
+ *         description: If add the notes to the verse.
  *     responses:
  *       200:
- *         description: Sucesso
+ *         description: Success
  *         content:
  *           application/json:
  *             schema:
@@ -59,28 +65,63 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
  *               properties:
  *                 result:
  *                   type: object
+ *                   properties:
+ *                     verses:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           content:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 text:
+ *                                   type: string
+ *                                 type:
+ *                                   type: string
+ *                                 note:
+ *                                   type: string
+ *                           reference:
+ *                             type: string
+ *                     version:
+ *                       type: string
+ *                     reference:
+ *                       type: string
+ *                     audioBibleUrl:
+ *                       type: string
+ *                     copyright:
+ *                       type: string
+ *                     audioBibleCopyright:
+ *                       type: string
  */
 
 // Endpoint 'getChapter'
 app.get('/getChapter', async (req, res) => {
     try {
-        // Obtendo os valores enviados como parâmetros
-        const { translation, book, chapter } = req.query;
-
-        // Validando os valores recebidos
+        
+        const { translation, book, chapter, addNotes } = req.query;
+        
         if (!translation || !book || !chapter) {
-            return res.status(400).json({ error: 'Por favor, forneça os parâmetros translation, book e chapter.' });
+            return res.status(400).json({ error: 'args [translation], [book], [chapter] can be null or empty!' });
+        }
+        let id;
+        if(BibleScraper.TRANSLATIONS[translation] == null){
+            id = translation;
+        }else{
+            id = BibleScraper.TRANSLATIONS[translation];
         }
 
-        // Executando a função com os valores fornecidos
-        const version = new BibleScraper(BibleScraper.TRANSLATIONS [translation]); // Adapte conforme sua implementação
-        const value = await version.chapterWithTitle(`${book}.${chapter}`);
+        console.log(`GET getChapter {translation:${translation}, book:${book}, chapter:${chapter}, addNotes:${addNotes}}`);
 
-        // Retornando o resultado
+        
+        const version = new BibleScraper(id);
+        const value = await version.chapterFormated(`${book}.${chapter}`, addNotes.toLowerCase() === "true");
+        
         res.status(200).json({ result: value });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Ocorreu um erro ao processar sua solicitação.' });
+        res.status(500).json({ error: 'Error to process request.' });
     }
 });
 
@@ -91,7 +132,7 @@ app.get('/getChapter', async (req, res) => {
  *     summary: Return the available translations.
  *     responses:
  *       200:
- *         description: Sucesso
+ *         description: Sucess
  *         content:
  *           application/json:
  *             schema:
